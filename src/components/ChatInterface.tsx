@@ -26,6 +26,42 @@ export default function ChatInterface() {
     scrollToBottom();
   }, [messages]);
 
+  // Track page load and lifecycle events
+  useEffect(() => {
+    // Track page load
+    trackUserBehavior('page_loaded', {
+      load_time: new Date().toISOString(),
+      page: 'chat_interface',
+      user_agent: navigator.userAgent,
+      screen_resolution: `${window.screen.width}x${window.screen.height}`,
+      viewport_size: `${window.innerWidth}x${window.innerHeight}`,
+    });
+
+    // Track page visibility changes
+    const handleVisibilityChange = () => {
+      trackUserBehavior('page_visibility_changed', {
+        visibility: document.hidden ? 'hidden' : 'visible',
+        timestamp: new Date().toISOString(),
+      });
+    };
+
+    // Track before page unload
+    const handleBeforeUnload = () => {
+      trackUserBehavior('page_before_unload', {
+        unload_time: new Date().toISOString(),
+        session_duration: Date.now() - performance.timing.navigationStart,
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   const handleSendMessage = async (content: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -94,6 +130,28 @@ export default function ChatInterface() {
           eventId,
           feedback,
           comment,
+          rating: feedback === 'positive' ? 5 : 1,
+          category: 'ai_response_quality',
+          userId: 'user_123',
+        }),
+      });
+      
+      // Track feedback submission analytics
+      await fetch('/api/analytics', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventType: 'feedback_submitted',
+          userId: 'user_123',
+          data: {
+            feedback_type: feedback,
+            has_comment: !!comment,
+            comment_length: comment?.length || 0,
+            response_quality: feedback === 'positive' ? 'high' : 'low',
+            user_engagement: 'high',
+          },
         }),
       });
       
@@ -102,6 +160,57 @@ export default function ChatInterface() {
     } catch (error) {
       console.error('Error submitting feedback:', error);
     }
+  };
+
+  // Track user behavior events
+  const trackUserBehavior = async (behaviorType: string, data: any = {}) => {
+    try {
+      await fetch('/api/analytics', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventType: behaviorType,
+          userId: 'user_123',
+          data: {
+            ...data,
+            timestamp: new Date().toISOString(),
+            page: 'chat_interface',
+            component: 'ChatInterface',
+          },
+        }),
+      });
+    } catch (error) {
+      console.error('Error tracking behavior:', error);
+    }
+  };
+
+  // Track when user starts typing
+  const handleInputChange = (value: string) => {
+    if (value.length > 0) {
+      trackUserBehavior('user_typing', {
+        input_length: value.length,
+        typing_speed: 'estimated',
+        has_content: true,
+      });
+    }
+  };
+
+  // Track when user focuses on input
+  const handleInputFocus = () => {
+    trackUserBehavior('input_focused', {
+      focus_time: new Date().toISOString(),
+      interaction_type: 'input_focus',
+    });
+  };
+
+  // Track when user scrolls
+  const handleScroll = () => {
+    trackUserBehavior('user_scrolled', {
+      scroll_time: new Date().toISOString(),
+      scroll_position: 'estimated',
+    });
   };
 
   return (
@@ -118,7 +227,10 @@ export default function ChatInterface() {
         )}
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div 
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        onScroll={handleScroll}
+      >
         {messages.length === 0 && (
           <div className="text-center text-gray-500 mt-8">
             <p>Start a conversation to test Raindrop tracking!</p>
@@ -150,7 +262,12 @@ export default function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
       
-      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+      <ChatInput 
+        onSendMessage={handleSendMessage} 
+        isLoading={isLoading}
+        onInputChange={handleInputChange}
+        onInputFocus={handleInputFocus}
+      />
     </div>
   );
 }
