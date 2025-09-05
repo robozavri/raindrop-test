@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Raindrop AI Chat
 
-## Getting Started
+A Next.js chat application that demonstrates comprehensive Raindrop tracking integration with AI interactions.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Real-time Chat Interface**: Clean, responsive chat UI built with React and Tailwind CSS
+- **AI Integration**: Uses Vercel AI SDK with OpenAI for chat completions
+- **Comprehensive Tracking**: Full Raindrop integration tracking all user interactions and AI responses
+- **User Feedback**: Built-in thumbs up/down feedback system tracked in Raindrop
+- **Rich Telemetry**: Tracks conversation context, model details, response metadata, and more
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Environment Variables**
+   Create a `.env.local` file in the root directory:
+   ```env
+   OPENAI_API_KEY=your_openai_api_key_here
+   RAINDROP_API_KEY=52bf8ba1-892e-4917-b533-0a86cd6f9738
+   ```
 
-## Learn More
+3. **Get OpenAI API Key**
+   - Go to [OpenAI Platform](https://platform.openai.com/)
+   - Create an account and get your API key
+   - Replace `your_openai_api_key_here` in `.env.local`
 
-To learn more about Next.js, take a look at the following resources:
+4. **Run the Application**
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Open in Browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Raindrop Tracking
 
-## Deploy on Vercel
+This application tracks the following data in Raindrop:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### AI Interactions
+- User messages and AI responses
+- Model information (GPT-4o-mini)
+- Conversation context and IDs
+- Response metadata (length, tokens, processing time)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### User Data
+- User identification and traits
+- Browser and OS information
+- Conversation flow and patterns
+
+### Attachments
+- Input messages as text attachments
+- AI responses as output attachments
+- Rich context for debugging and analysis
+
+### Feedback Signals
+- Thumbs up/down ratings
+- User comments and sentiment
+- Quality metrics for AI responses
+
+## What Gets Tracked
+
+Every chat interaction creates a comprehensive event in Raindrop with:
+
+1. **Event Details**: Unique event ID, conversation ID, timestamp
+2. **User Context**: User ID, traits, browser info
+3. **AI Context**: Model used, prompt, response, metadata
+4. **Attachments**: Full conversation context
+5. **Properties**: Response length, processing time, experiment tags
+6. **Feedback**: User ratings and comments
+
+## Testing
+
+1. Start a conversation by typing a message
+2. Check your Raindrop dashboard to see the events
+3. Use the feedback buttons to test signal tracking
+4. Monitor the comprehensive telemetry data being collected
+
+## Dashboard
+
+Visit your [Raindrop Dashboard](https://app.raindrop.ai) to see all the tracked data in real-time.
