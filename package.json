@@ -6,11 +6,15 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:raindrop": "node test-simple.js",
+    "test:raindrop:full": "node test-simulation.js",
+    "test": "node run-test.js"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.24",
     "ai": "^5.0.33",
+    "axios": "^1.11.0",
     "next": "15.5.2",
     "raindrop-ai": "^0.0.59",
     "react": "19.1.0",
