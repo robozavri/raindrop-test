@@ -10,6 +10,11 @@ import {
   getEventTags
 } from '@/lib/raindrop';
 import { ChatTools } from '@/lib/tools';
+import { 
+  failureTracker, 
+  FailureCategory, 
+  FailureSeverity 
+} from '@/lib/failure-tracking';
 
 export async function POST(request: NextRequest) {
   try {
@@ -133,6 +138,37 @@ export async function POST(request: NextRequest) {
     // Generate AI response
     const aiResponse = await generateAIResponse(message);
     
+    // Detect failures automatically
+    const failureDetections = failureTracker.detectFailures(message, aiResponse, {
+      eventId,
+      userId,
+      sessionId: convoId,
+      model: 'gpt-4o-mini',
+      toolsUsed: toolResults.map(t => t.tool)
+    });
+
+    // Track any detected failures
+    for (const detection of failureDetections) {
+      await failureTracker.trackFailure(
+        eventId,
+        detection.category,
+        detection.severity,
+        {
+          description: `Auto-detected: ${detection.pattern}`,
+          confidence: detection.confidence,
+          errorType: detection.category,
+          errorMessage: `Pattern matched: ${detection.pattern}`,
+          userId,
+          sessionId: convoId,
+          modelVersion: 'gpt-4o-mini',
+          inputLength: message.length,
+          responseLength: aiResponse.length,
+          autoDetected: true,
+          metadata: detection.metadata
+        }
+      );
+    }
+    
     // Add AI response and tool results as attachments
     const outputAttachments = [
       {
@@ -168,6 +204,12 @@ export async function POST(request: NextRequest) {
       model_used: "gpt-4o-mini",
       processing_time: Date.now().toString(),
       response_time_ms: (Math.random() * 2000 + 500).toString(),
+      // Failure tracking metadata
+      failures_detected: failureDetections.length.toString(),
+      failure_categories: failureDetections.map(f => f.category).join(','),
+      failure_severities: failureDetections.map(f => f.severity).join(','),
+      auto_detection_enabled: 'true',
+      failure_confidence_scores: failureDetections.map(f => f.confidence.toFixed(2)).join(',')
     });
 
     // Add tags to the interaction
@@ -209,6 +251,13 @@ export async function POST(request: NextRequest) {
       conversationId: convoId,
       toolsUsed: toolResults.map(t => t.tool),
       userTraits: userTraits,
+      failures: {
+        detected: failureDetections.length,
+        categories: failureDetections.map(f => f.category),
+        severities: failureDetections.map(f => f.severity),
+        patterns: failureDetections.map(f => f.pattern),
+        confidenceScores: failureDetections.map(f => f.confidence)
+      }
     });
 
   } catch (error) {

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test:raindrop": "node test-simple.js",
     "test:raindrop:full": "node test-simulation.js",
+    "test:failures": "node test-failure-tracking.js",
     "test": "node run-test.js"
   },
   "dependencies": {
